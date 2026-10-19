@@ -1,0 +1,13 @@
+{
+  "name": "tcgstock",
+  "private": true,
+  "description": "Classeur TCG : stock de cartes et suivi des ouvertures (AdonisJS + Nuxt)",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "install:all": "npm --prefix api install && npm --prefix web install",
+    "dev:api": "npm --prefix api run dev",
+    "dev:web": "npm --prefix web run dev",
+    "test": "npm --prefix api test",
+    "typecheck": "npm --prefix api run typecheck && npm --prefix web run typecheck"
+  }
+}
