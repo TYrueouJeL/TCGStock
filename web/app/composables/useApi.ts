@@ -1,12 +1,14 @@
-import type { FetchError } from 'ofetch'
+import type { $Fetch, FetchError } from 'ofetch'
 
 export const useToken = () => useCookie<string | null>('tcg_token', { sameSite: 'lax', maxAge: 60 * 60 * 24 * 60 })
 
 /**
  * $fetch bound to the AdonisJS API, with the user's token.
- * A 401 sends the user back to the login page.
+ * A 401 sends the user back to the login page. Typed as a plain ofetch
+ * client: the API is not a Nitro server, so Nuxt's route typing only slows
+ * the type checker down.
  */
-export function useApi() {
+export function useApi(): $Fetch {
   const config = useRuntimeConfig()
   const token = useToken()
   return $fetch.create({
@@ -21,7 +23,7 @@ export function useApi() {
         navigateTo('/connexion')
       }
     },
-  })
+  }) as unknown as $Fetch
 }
 
 export type ApiProblem = { message: string; fields: Record<string, string> }
