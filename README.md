@@ -14,7 +14,7 @@ Gestion du stock de cartes **One Piece, Pokémon, Wankul et Riftbound**, et suiv
 - **Extensions et raretés par jeu** : une page pour gérer les listes de chaque jeu (ajout, renommage, ordre, suppression si inutilisée). Le formulaire de carte ne propose que ces valeurs. Les raretés usuelles de chaque jeu sont créées à l'inscription.
 - **Ouvertures** : noter qu'on a ouvert N boosters, displays ou starter decks d'une extension, à une date, avec le prix payé et la valeur tirée (facultatifs).
 - **Statistiques** : produits ouverts par type et par mois, par jeu, par extension, dépenses, prix moyen, valeur tirée et bilan, valeur du stock par jeu. Filtres par jeu et par période.
-- **Import / export** : CSV (Excel, Google Sheets) ou JSON. À l'import, les extensions et raretés inconnues sont ajoutées aux listes du jeu.
+- **Import / export** : classeur Excel (.xlsx), CSV ou JSON. L'export Excel d'une collection Wankul (une feuille par extension, colonnes « J'ai » et « Nombre en + ») est reconnu tel quel et seules les cartes possédées sont importées. À l'import, les extensions et raretés inconnues sont ajoutées aux listes du jeu, et une carte déjà en stock voit sa quantité mise à jour au lieu d'être ajoutée en double.
 
 ## Lancer en local
 
@@ -60,7 +60,7 @@ Toutes les routes sont sous `/api/v1` et, sauf l'authentification, demandent l'e
 | GET, POST | `/cards` | Lister, ajouter |
 | PUT, DELETE | `/cards/:id` | Modifier, supprimer |
 | POST | `/cards/:id/quantity` | `{ delta: 1 }` ou `{ delta: -1 }` |
-| POST | `/cards/import` | Import en lot (`{ rows: [...] }`) |
+| POST | `/cards/import` | Import en lot (`{ rows: [...] }`), crée ou met à jour les cartes |
 | GET, POST | `/openings` | Lister, noter une ouverture |
 | PUT, DELETE | `/openings/:id` | Modifier, supprimer |
 | GET | `/stats?gameId=&from=&to=` | Statistiques |

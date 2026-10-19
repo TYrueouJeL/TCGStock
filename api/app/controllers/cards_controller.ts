@@ -93,6 +93,9 @@ export default class CardsController {
   /**
    * Bulk import from a spreadsheet. Unknown extensions and rarities are
    * added to the game's lists so every imported card stays editable.
+   * A row matching a card already in stock (same game, extension, number,
+   * name, language, condition and finish) sets that card's quantity, so
+   * importing an updated export twice does not create duplicates.
    */
   async import({ auth, request, serialize }: HttpContext) {
     const user = auth.getUserOrFail()
@@ -100,10 +103,35 @@ export default class CardsController {
     const games = await Game.all()
     const bySlug = new Map(games.map((g) => [g.slug, g]))
     let created = 0
+    let updated = 0
     const skipped: { row: number; reason: string }[] = []
     const newLists = { extensions: 0, rarities: 0 }
 
     await db.transaction(async (trx) => {
+      const keyOf = (c: {
+        gameId: number
+        extensionId: number
+        number: string
+        name: string
+        language: string
+        condition: string
+        finish: string
+      }) =>
+        [
+          c.gameId,
+          c.extensionId,
+          sameName(c.number),
+          sameName(c.name),
+          c.language,
+          c.condition,
+          c.finish,
+        ].join('|')
+      const stock = new Map<string, Card>()
+      for (const card of await Card.query({ client: trx }).where('userId', user.id)) {
+        if (!stock.has(keyOf(card))) stock.set(keyOf(card), card)
+      }
+      // Cards this import already wrote: a repeated row adds to them.
+      const touched = new Set<string>()
       const extCache = new Map<string, Extension>()
       const rarCache = new Map<string, Rarity>()
       const findOrCreate = async (
@@ -145,30 +173,52 @@ export default class CardsController {
           row.extension || 'Sans extension'
         )
         const rar = await findOrCreate(Rarity, rarCache, game.id, row.rarity || 'Non précisée')
-        await Card.create(
-          {
-            userId: user.id,
-            gameId: game.id,
-            extensionId: ext.id,
+        const fields = {
+          userId: user.id,
+          gameId: game.id,
+          extensionId: ext.id,
+          rarityId: rar.id,
+          name: row.name,
+          number: row.number ?? '',
+          language: languageOf(row.language),
+          condition: conditionOf(row.condition),
+          finish: finishOf(row.finish),
+        }
+        const quantity = row.quantity ?? 1
+        const key = keyOf(fields)
+        const existing = stock.get(key)
+        if (existing) {
+          existing.useTransaction(trx)
+          existing.merge({
             rarityId: rar.id,
-            name: row.name,
-            number: row.number ?? '',
-            language: languageOf(row.language),
-            condition: conditionOf(row.condition),
-            finish: finishOf(row.finish),
-            quantity: row.quantity ?? 1,
-            purchasePrice: row.purchasePrice ?? null,
-            value: row.value ?? null,
-            location: row.location ?? '',
-            notes: row.notes || null,
-          },
-          { client: trx }
-        )
-        created++
+            quantity: touched.has(key) ? existing.quantity + quantity : quantity,
+          })
+          if (row.purchasePrice !== undefined) existing.purchasePrice = row.purchasePrice
+          if (row.value !== undefined) existing.value = row.value
+          if (row.location) existing.location = row.location
+          if (row.notes) existing.notes = row.notes
+          await existing.save()
+          if (!touched.has(key)) updated++
+        } else {
+          const card = await Card.create(
+            {
+              ...fields,
+              quantity,
+              purchasePrice: row.purchasePrice ?? null,
+              value: row.value ?? null,
+              location: row.location ?? '',
+              notes: row.notes || null,
+            },
+            { client: trx }
+          )
+          stock.set(key, card)
+          created++
+        }
+        touched.add(key)
       }
     })
 
-    return serialize({ created, skipped, newLists })
+    return serialize({ created, updated, skipped, newLists })
   }
 
   private async assertRefs(

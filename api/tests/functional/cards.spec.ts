@@ -148,4 +148,45 @@ test.group('Cards', (group) => {
     const exts = await client.get(`/api/v1/games/${pk.id}/extensions`).loginAs(user)
     assert.equal((exts.body() as any).data[0].cardCount, 2)
   })
+
+  test('importing the same export again updates quantities instead of duplicating', async ({
+    client,
+    assert,
+  }) => {
+    const user = await makeUser()
+    const rows = (quantity: number) => [
+      {
+        game: 'wankul',
+        name: 'Jeu de vitres',
+        extension: 'Legacy',
+        number: 'T#003',
+        rarity: 'Terrain',
+        quantity,
+      },
+      { game: 'wankul', name: 'Cuisine', extension: 'Legacy', number: 'T#008', quantity: 1 },
+    ]
+    const first = await client
+      .post('/api/v1/cards/import')
+      .loginAs(user)
+      .json({ rows: rows(1) })
+    assert.equal((first.body() as any).data.created, 2)
+
+    const again = await client
+      .post('/api/v1/cards/import')
+      .loginAs(user)
+      .json({ rows: [...rows(3), { ...rows(3)[1], quantity: 2 }] })
+    assert.equal((again.body() as any).data.created, 0)
+    assert.equal((again.body() as any).data.updated, 2)
+
+    const wk = await game('wankul')
+    const res = await client.get(`/api/v1/cards?gameId=${wk.id}&sort=name`).loginAs(user)
+    const list = (res.body() as any).data ?? res.body()
+    assert.deepEqual(
+      list.map((c: any) => [c.name, c.quantity]),
+      [
+        ['Cuisine', 3],
+        ['Jeu de vitres', 3],
+      ]
+    )
+  })
 })
