@@ -8,7 +8,18 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = AuthAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -33,7 +44,25 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class CardSchema extends BaseModel {
-  static $columns = ['condition', 'createdAt', 'extensionId', 'finish', 'gameId', 'id', 'language', 'location', 'name', 'notes', 'number', 'purchasePrice', 'quantity', 'rarityId', 'updatedAt', 'userId', 'value'] as const
+  static $columns = [
+    'condition',
+    'createdAt',
+    'extensionId',
+    'finish',
+    'gameId',
+    'id',
+    'language',
+    'location',
+    'name',
+    'notes',
+    'number',
+    'purchasePrice',
+    'quantity',
+    'rarityId',
+    'updatedAt',
+    'userId',
+    'value',
+  ] as const
   $columns = CardSchema.$columns
   @column()
   declare condition: string
@@ -72,7 +101,16 @@ export class CardSchema extends BaseModel {
 }
 
 export class ExtensionSchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'gameId', 'id', 'name', 'position', 'updatedAt', 'userId'] as const
+  static $columns = [
+    'code',
+    'createdAt',
+    'gameId',
+    'id',
+    'name',
+    'position',
+    'updatedAt',
+    'userId',
+  ] as const
   $columns = ExtensionSchema.$columns
   @column()
   declare code: string | null
@@ -112,7 +150,20 @@ export class GameSchema extends BaseModel {
 }
 
 export class OpeningSchema extends BaseModel {
-  static $columns = ['createdAt', 'extensionId', 'gameId', 'id', 'notes', 'openedOn', 'productType', 'pulledValue', 'quantity', 'unitPrice', 'updatedAt', 'userId'] as const
+  static $columns = [
+    'createdAt',
+    'extensionId',
+    'gameId',
+    'id',
+    'notes',
+    'openedOn',
+    'productType',
+    'pulledValue',
+    'quantity',
+    'unitPrice',
+    'updatedAt',
+    'userId',
+  ] as const
   $columns = OpeningSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -141,7 +192,15 @@ export class OpeningSchema extends BaseModel {
 }
 
 export class RaritySchema extends BaseModel {
-  static $columns = ['createdAt', 'gameId', 'id', 'name', 'position', 'updatedAt', 'userId'] as const
+  static $columns = [
+    'createdAt',
+    'gameId',
+    'id',
+    'name',
+    'position',
+    'updatedAt',
+    'userId',
+  ] as const
   $columns = RaritySchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
